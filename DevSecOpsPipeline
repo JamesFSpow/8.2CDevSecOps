@@ -1,40 +1,63 @@
-pipeline 
-{
+pipeline {
   agent any
-    stages 
-    {
-      stage('Checkout') 
-    {
-        steps 
-      {
+
+  tools {
+    nodejs 'NodeJS' // Ensure NodeJS is installed via Jenkins tools
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
         git url: 'https://github.com/JamesFSpow/8.2CDevSecOps.git', branch: 'main'
       }
     }
-      stage('Install Dependencies') 
-    {
-        steps 
-        {
-          bat 'npm install'
-        }
-    }
-      stage('Run Tests') 
-    {
-      steps 
-      {
-        bat 'npm test || exit/b 0' // Allows pipeline to continue despite test failures
-      }
-    }
-      stage('Generate Coverage Report') {
-      steps 
-      {
-      bat 'npm run coverage || exit/b 0'
-      }
-    }
-      stage('NPM Audit (Security Scan)') 
-      {
+
+    stage('Install Dependencies') {
       steps {
-        bat 'npm audit || exit/b 0' 
+        bat 'npm install'
+      }
+    }
+
+    stage('Run Tests') {
+      steps {
+        bat 'npm test || exit /b 0'
+      }
+    }
+
+    stage('Generate Coverage Report') {
+      steps {
+        bat 'npm run coverage || exit /b 0'
+      }
+    }
+
+    stage('NPM Audit (Security Scan)') {
+      steps {
+        bat 'npm audit || exit /b 0'
+      }
+    }
+
+    stage('Snyk Test') {
+      steps {
+        withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+          bat 'snyk auth %SNYK_TOKEN%'
+          bat 'snyk test || exit /b 0' // Don’t fail the build but log vulnerabilities
+        }
+      }
+    }
+
+    // OPTIONAL: If you're using CodeQL, you’d run it via GitHub Actions usually, not Jenkins.
+    // But if you're doing it manually or via CLI in Jenkins, add this placeholder:
+    stage('CodeQL Analysis (placeholder)') {
+      steps {
+        echo 'You should run CodeQL via GitHub Actions using the proper @v3 actions.'
       }
     }
   }
+
+  post {
+    always {
+      echo 'Pipeline completed.'
+    }
+  }
 }
+
