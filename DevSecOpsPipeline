@@ -7,7 +7,7 @@ pipeline
     {
         steps 
       {
-        git branch: 'main', url: ' https://github.com/JamesFSpow/8.2CDevSecOps.git'
+        git url: 'https://github.com/JamesFSpow/8.2CDevSecOps.git', branch: 'main
       }
     }
       stage('Install Dependencies') 
